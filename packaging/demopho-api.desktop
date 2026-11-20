@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=DemoPHO API
+Comment=Yerel DemoPHO API sunucusunu başlat
+Exec=demopho-api
+Icon=demopho-api
+Terminal=true
+Type=Application
+Categories=Development;
