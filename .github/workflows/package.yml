@@ -130,6 +130,7 @@ jobs:
             Wox özel motor prototipi için Windows ve Linux masaüstü paketleri.
 
             Bu sürüm x86 16-bit boot sektörünü sınırlı biçimde çalıştırır; tam işletim sistemi ISO önyüklemesi henüz desteklenmez.
+            Demo Keon sekmesi ve DemoPHO konuşması görsel/çevrimdışı prototiptir; çalışan bir Linux konuk sistemi değildir.
             AppImage statik FUSE3 runtime kullanır; libfuse2 gerektirmez. İndirme çalıştırma iznini korumazsa Wox-Linux-x86_64.tar.gz arşivini çıkarın. Arşiv hem AppImage'ı hem de FUSE'suz Wox uygulamasını içerir.
           files: |
             release-assets/Wox.exe

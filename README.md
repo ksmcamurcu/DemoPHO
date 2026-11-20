@@ -8,6 +8,10 @@ Wox Core 0.1.0-prototype, kendi tanımlı `Wox Bytecode v1` komut kümesini ve s
 
 **Henüz Ubuntu, Parrot, Pardus ARM veya Windows ISO’larını başlatamaz.** Mevcut x86 denemesi disk BIOS kesmelerini (`INT 13h`), 32/64-bit kipleri, ARM64'ü, sanal aygıtları veya disk denetleyicilerini desteklemez. Bu sistemler için bu bileşenler geliştirilmelidir. Kendi motoruyla güvenilir işletim sistemi sanallaştırması uzun soluklu bir mühendislik çalışmasıdır; Wox şu anda ana bilgisayar için güvenlik garantisi vermez. Güvenilmeyen ISO’ları çalıştırmak için kullanmayın.
 
+### Demo Keon
+
+Wox'taki **Demo Keon** sekmesi, ileride konuk ekrana bağlanacak masaüstünün görsel önizlemesidir; henüz Linux çekirdeği veya ISO çalıştırmaz. Özgün, basit çöp adam karakterleri kendi aralarında konuşur; **Çöp adam ekle** ile yeni karakter eklenebilir. DemoPHO sohbeti bu prototipte çevrimdışı ve kural tabanlıdır; harici AI servisine bağlanmaz ve mikrofon/ses kullanmaz. Gerçek Demo Keon Linux konuğu, Wox'un kendi motoruna 32/64-bit işlemci, bellek, disk ve aygıt desteği eklendikten sonra önyüklenebilir.
+
 ## Geliştirme
 
 Python 3.11 veya üzeri gerekir. Sanal ortam oluşturup test bağımlılıklarını yükleyin:

@@ -8,6 +8,7 @@ from pydantic import ValidationError
 
 from app.engine.core import EngineError, run_program
 from app.engine.realmode import SAMPLE_BOOT_SECTOR, run_boot_sector
+from app.demo_keon import DemoKeonWorld
 from app.iso_manager import IsoManager
 from app.schemas import WoxProgram
 
@@ -236,6 +237,243 @@ def run_desktop(
         command=execute_boot_sector,
     ).pack(side="right")
     execute_boot_sector()
+
+    keon_tab = ttk.Frame(tabs, padding=18)
+    tabs.add(keon_tab, text="Demo Keon")
+    ttk.Label(
+        keon_tab,
+        text="Demo Keon",
+        style="Title.TLabel",
+    ).pack(anchor="w", pady=(0, 4))
+    ttk.Label(
+        keon_tab,
+        text=(
+            "Demo Keon konuk masaüstü önizlemesi — bu Wox arayüz demosu gerçek "
+            "bir Linux ISO'su çalıştırmaz. Wox'un kendi motorunda Linux "
+            "önyükleme desteği henüz geliştirilmedi."
+        ),
+        style="Subtitle.TLabel",
+        wraplength=850,
+    ).pack(anchor="w", pady=(0, 12))
+
+    demo_keon = DemoKeonWorld()
+    active_bubble = {"speaker": "DemoPHO", "text": "Merhaba! Demo Keon'a hoş geldin."}
+    animation_frame = 0
+
+    desktop_frame = ttk.Frame(keon_tab)
+    desktop_frame.pack(fill="x", pady=(0, 12))
+    desktop = tk.Canvas(
+        desktop_frame,
+        height=250,
+        background="#0b1220",
+        highlightthickness=0,
+    )
+    desktop.pack(side="top", fill="x", expand=True)
+    desktop_scroll = ttk.Scrollbar(
+        desktop_frame,
+        orient="horizontal",
+        command=desktop.xview,
+    )
+    desktop_scroll.pack(side="bottom", fill="x")
+    desktop.configure(xscrollcommand=desktop_scroll.set)
+
+    chat_area = ttk.Frame(keon_tab)
+    chat_area.pack(fill="both", expand=True)
+    ttk.Label(chat_area, text="DemoPHO ve arkadaşları").pack(anchor="w", pady=(0, 6))
+    chat_history = tk.Text(
+        chat_area,
+        height=7,
+        state="disabled",
+        wrap="word",
+        font=("Segoe UI", 10),
+        background="#0b1220",
+        foreground="#d1d5db",
+        relief="flat",
+        padx=10,
+        pady=8,
+    )
+    chat_history.pack(fill="both", expand=True)
+
+    def add_chat_line(speaker: str, text: str) -> None:
+        chat_history.configure(state="normal")
+        chat_history.insert("end", f"{speaker}: {text}\n")
+        chat_history.see("end")
+        chat_history.configure(state="disabled")
+        active_bubble["speaker"] = speaker
+        active_bubble["text"] = text
+        draw_desktop()
+
+    def draw_desktop() -> None:
+        desktop.delete("all")
+        visible_width = max(desktop.winfo_width(), 720)
+        content_width = max(visible_width, len(demo_keon.characters) * 145 + 60)
+        desktop.configure(scrollregion=(0, 0, content_width, 250))
+        desktop.create_rectangle(
+            0, 0, content_width, 250, fill="#172554", outline=""
+        )
+        desktop.create_oval(
+            content_width - 190,
+            -70,
+            content_width - 30,
+            90,
+            fill="#1e3a8a",
+            outline="",
+        )
+
+        for index, character in enumerate(demo_keon.characters):
+            x = 95 + index * 145
+            ground = 211
+            bob = (animation_frame + index) % 2 * 3
+            head_top = 92 - bob
+            desktop.create_oval(
+                x - 15,
+                head_top,
+                x + 15,
+                head_top + 30,
+                outline=character.color,
+                width=5,
+            )
+            desktop.create_line(
+                x,
+                head_top + 30,
+                x,
+                ground - 42,
+                fill=character.color,
+                width=5,
+            )
+            arm_swing = 10 if (animation_frame + index) % 2 else -10
+            desktop.create_line(
+                x,
+                head_top + 43,
+                x - 22,
+                head_top + 59 + arm_swing,
+                x - 31,
+                head_top + 48 + arm_swing,
+                fill=character.color,
+                width=4,
+                capstyle="round",
+            )
+            desktop.create_line(
+                x,
+                head_top + 43,
+                x + 22,
+                head_top + 59 - arm_swing,
+                x + 31,
+                head_top + 48 - arm_swing,
+                fill=character.color,
+                width=4,
+                capstyle="round",
+            )
+            desktop.create_line(
+                x,
+                ground - 42,
+                x - 17,
+                ground - 8,
+                fill=character.color,
+                width=4,
+                capstyle="round",
+            )
+            desktop.create_line(
+                x,
+                ground - 42,
+                x + 17,
+                ground - 8,
+                fill=character.color,
+                width=4,
+                capstyle="round",
+            )
+            desktop.create_text(
+                x,
+                ground + 4,
+                text=character.name,
+                fill="#e5e7eb",
+                font=("Segoe UI", 9, "bold"),
+            )
+
+        speaker = next(
+            (
+                character
+                for character in demo_keon.characters
+                if character.name == active_bubble["speaker"]
+            ),
+            demo_keon.characters[0],
+        )
+        speaker_x = 95 + demo_keon.characters.index(speaker) * 145
+        bubble_text = active_bubble["text"]
+        if len(bubble_text) > 52:
+            bubble_text = bubble_text[:49] + "..."
+        desktop.create_rectangle(
+            speaker_x - 105,
+            12,
+            speaker_x + 105,
+            58,
+            fill="#f8fafc",
+            outline="#cbd5e1",
+        )
+        desktop.create_text(
+            speaker_x,
+            35,
+            text=bubble_text,
+            width=190,
+            fill="#0f172a",
+            font=("Segoe UI", 9),
+        )
+        desktop.create_rectangle(
+            0, 232, content_width, 250, fill="#0f172a", outline=""
+        )
+        desktop.create_text(
+            18,
+            241,
+            text="Demo Keon  •  DemoPHO",
+            anchor="w",
+            fill="#cbd5e1",
+            font=("Segoe UI", 9, "bold"),
+        )
+
+    def animate_desktop() -> None:
+        nonlocal animation_frame
+        animation_frame += 1
+        draw_desktop()
+        root.after(650, animate_desktop)
+
+    def add_keon_character() -> None:
+        character = demo_keon.add_character()
+        add_chat_line("DemoPHO", f"{character.name} aramıza katıldı!")
+        desktop.xview_moveto(1)
+
+    def send_keon_message(event=None) -> None:
+        text = message_entry.get().strip()
+        if not text:
+            return
+        message_entry.delete(0, "end")
+        add_chat_line("Sen", text)
+        reply = demo_keon.reply_to_user(text)
+        add_chat_line(reply.speaker, reply.text)
+
+    chat_controls = ttk.Frame(chat_area)
+    chat_controls.pack(fill="x", pady=(8, 0))
+    message_entry = ttk.Entry(chat_controls)
+    message_entry.pack(side="left", fill="x", expand=True)
+    message_entry.bind("<Return>", send_keon_message)
+    ttk.Button(
+        chat_controls,
+        text="Gönder",
+        command=send_keon_message,
+    ).pack(side="left", padx=(8, 0))
+    ttk.Button(
+        chat_controls,
+        text="Çöp adam ekle",
+        command=add_keon_character,
+    ).pack(side="right", padx=(8, 0))
+
+    def keon_conversation_tick() -> None:
+        for line in demo_keon.next_conversation():
+            add_chat_line(line.speaker, line.text)
+        root.after(9000, keon_conversation_tick)
+
+    draw_desktop()
+    keon_conversation_tick()
+    animate_desktop()
 
     systems_tab = ttk.Frame(tabs, padding=18)
     tabs.add(systems_tab, text="ISO arşivi")
