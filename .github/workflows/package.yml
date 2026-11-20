@@ -77,6 +77,25 @@ jobs:
           name: Wox-Linux-AppImage
           path: dist/Wox-x86_64.AppImage
 
+      - name: FUSE gerektirmeyen Linux paketi
+        shell: bash
+        run: |
+          mkdir -p Portable
+          cp dist/Wox Portable/Wox
+          chmod +x Portable/Wox
+          cat > Portable/README.txt <<'EOF'
+          Wox Linux taşınabilir paketi
+
+          Arşivi dosya yöneticisinde çıkarın ve Wox dosyasına çift tıklayın.
+          Çalıştırma onayı istenirse "Çalıştır"ı seçin.
+          Bu paket AppImage/FUSE kullanmaz.
+          EOF
+          tar -czf dist/Wox-Linux-x86_64.tar.gz -C Portable Wox README.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Wox-Linux-portable
+          path: dist/Wox-Linux-x86_64.tar.gz
+
   publish:
     if: startsWith(github.ref, 'refs/tags/')
     needs: [windows, linux]
@@ -92,6 +111,10 @@ jobs:
         with:
           name: Wox-Linux-AppImage
           path: release-assets
+      - uses: actions/download-artifact@v4
+        with:
+          name: Wox-Linux-portable
+          path: release-assets
       - uses: softprops/action-gh-release@v2
         with:
           name: Wox ${{ github.ref_name }}
@@ -99,8 +122,10 @@ jobs:
             Wox özel motor prototipi için Windows ve Linux masaüstü paketleri.
 
             Bu sürüm x86 16-bit boot sektörünü sınırlı biçimde çalıştırır; tam işletim sistemi ISO önyüklemesi henüz desteklenmez.
+            AppImage için FUSE gerekir. FUSE kullanmayan Linux sistemlerinde Wox-Linux-x86_64.tar.gz dosyasını çıkarıp içindeki Wox uygulamasını çalıştırın.
           files: |
             release-assets/Wox.exe
             release-assets/Wox-x86_64.AppImage
+            release-assets/Wox-Linux-x86_64.tar.gz
           fail_on_unmatched_files: true
           make_latest: true
