@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "demopho-api"
-version = "0.1.0"
-description = "DemoPHO modüler API demosu"
+name = "wox-vm"
+version = "0.2.0"
+description = "Wox özel sanal makine motoru prototipi"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -23,7 +23,7 @@ build = [
 ]
 
 [project.scripts]
-demopho-api = "app.main:main"
+wox = "app.main:main"
 
 [tool.setuptools.packages.find]
 include = ["app*"]

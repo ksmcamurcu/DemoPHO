@@ -1,10 +1,16 @@
-# DemoPHO API
+# Wox
 
-DemoPHO; yapay zekâ sohbeti, kullanıcı belleği, öğrenme geri bildirimi, yetenek önerileri, ürün siparişleri ve randevu planlaması için modüler bir FastAPI demosudur. API varsayılan olarak yalnızca yerel bilgisayarda `127.0.0.1:8000` adresinde çalışır.
+Wox, kendi sanal makine motorunu geliştiren bir masaüstü prototipidir. Windows `.exe` ve Linux `.AppImage` olarak paketlenir. Arayüz Tkinter ile uygulamanın içindedir; kullanıcıdan ayrıca C++ çalışma zamanı indirmesi istenmez.
 
-## Gereksinimler ve sanal ortam
+## Şu anki durum
 
-Python 3.11 veya üzeri gerekir. Depoyu indirdikten sonra proje klasöründe sanal ortamı oluşturun:
+Wox Core 0.1.0-prototype, kendi tanımlı `Wox Bytecode v1` komut kümesini ve sınırlandırılmış bir x86 16-bit gerçek kip CPU adımını içerir. x86 önyükleme sektörü 1 MiB sanal bellekte en fazla 100.000 komut çalıştırabilir; BIOS 10h metin çıktısı desteklenir. Bytecode denemesi dört kayıtçı ve 64 KiB sanal bellek sunar. Motor konak dosyalarına, ağa veya işletim sistemine erişemez.
+
+**Henüz Ubuntu, Parrot, Pardus ARM veya Windows ISO’larını başlatamaz.** Mevcut x86 denemesi disk BIOS kesmelerini (`INT 13h`), 32/64-bit kipleri, ARM64'ü, sanal aygıtları veya disk denetleyicilerini desteklemez. Bu sistemler için bu bileşenler geliştirilmelidir. Kendi motoruyla güvenilir işletim sistemi sanallaştırması uzun soluklu bir mühendislik çalışmasıdır; Wox şu anda ana bilgisayar için güvenlik garantisi vermez. Güvenilmeyen ISO’ları çalıştırmak için kullanmayın.
+
+## Geliştirme
+
+Python 3.11 veya üzeri gerekir. Sanal ortam oluşturup test bağımlılıklarını yükleyin:
 
 ```bash
 python -m venv .venv
@@ -17,60 +23,40 @@ Windows PowerShell:
 python -m pip install -e ".[test]"
 ```
 
-Linux/macOS:
+Linux:
 
 ```bash
 source .venv/bin/activate
 python -m pip install -e ".[test]"
 ```
 
-API'yi geliştirme ortamında başlatın:
+Wox penceresini başlatın:
 
 ```bash
 python -m app.main
 ```
 
-Varsayılan adres `http://127.0.0.1:8000`'dir. `DEMO_PHO_HOST` ve `DEMO_PHO_PORT` ortam değişkenleriyle değiştirilebilir. API belgeleri `/docs`, OpenAPI 3.1 şeması `/openapi.json` adresindedir.
-
-Testleri çalıştırmak için:
+Testleri çalıştırın:
 
 ```bash
 python -m pytest
 ```
 
-## Windows ve Linux paketleri
+## Yerel API
 
-Tek kaynak kodu iki platforma göre GitHub Actions ile paketlenir: Windows için `DemoPHO-API.exe`, Linux için `DemoPHO-x86_64.AppImage`. Paketleri GitHub Actions'tan `v*` etiketi yayımlandığında veya Actions sekmesindeki `Paketleri oluştur` iş akışı elle çalıştırıldığında üretebilirsiniz. Çalıştırıldığında API sunucusu başlar ve günlükleri terminalde gösterir; durdurmak için `Ctrl+C` kullanın.
+Wox açıldığında API yalnızca bu bilgisayarda `127.0.0.1:8000` adresinde başlar. Belgeler `/docs`, OpenAPI 3.1 şeması `/openapi.json` adresindedir.
 
-Yerel paketleme bağımlılıkları:
+- `GET /health`
+- `GET /api/v1/engine` — motor yetenekleri ve sınırları
+- `POST /api/v1/engine/run` — sınırlı Wox Bytecode programı çalıştırma
+- `POST /api/v1/engine/boot-sector` — imzası doğrulanan 512 baytlık x86 16-bit boot sektörünü sınırlı komut kümesinde çalıştırma
 
-```bash
-python -m pip install -e ".[build]"
-```
+Motorun adım sayısı, program uzunluğu, kayıtçı sayısı ve belleği sabit sınırlarla korunur. Programlar Python kodu veya konak komutları çalıştıramaz. Masaüstü arayüzündeki **x86 önyükleme denemesi** sekmesi örnek boot sektörünü çalıştırır; bu, gerçek işletim sistemi boot desteği değildir.
 
-`.AppImage` derlemesi Linux ortamı ve `appimagetool` gerektirir; `.exe` derlemesi Windows ortamı gerektirir. İş akışı bu nedenle iki ayrı GitHub Actions koşucusu kullanır.
+## Paketleme
 
-## API kullanımı
+Windows ve Linux paketleri GitHub Actions’taki **Wox paketlerini oluştur** iş akışıyla derlenir. `v*` etiketi yayımlandığında iş akışı testleri ve iki platform paketlemesini tamamlar, ardından `Wox.exe` ile `Wox-x86_64.AppImage` dosyalarını GitHub Release varlığı olarak ekler. Depoda **Actions → Wox paketlerini oluştur → Run workflow** ile elle çalıştırma yalnızca Actions artifacts üretir; Release oluşturmaz. Paketler özel Wox motor prototipini ve arayüzü içerir; QEMU/VirtualBox içermez. Linux'ta AppImage başlatma için FUSE desteği gerekir; dağıtımda yoksa sistem yöneticisinin FUSE uyumluluğu kurması gerekir.
 
-Kullanıcıya ait tüm uç noktalar `X-User-ID` başlığı ister. Bu başlık yalnızca demoda veri kapsamını ayırır; kimlik doğrulama veya erişim kontrolü sağlamaz.
+ISO indirmeleri uygulamanın **ISO arşivi** sekmesinden kullanıcı isteğiyle başlatılır. Ubuntu LTS ve Parrot indirmeleri resmî metadata üzerinden sürümü ve SHA özetini denetler; yeni dosya doğrulandıktan sonra eski sürüm silinir. Pardus ARM64 için resmî sanal makine ISO’su bulunmadığından kullanıcı kendi ARM64 imajını seçebilir. Lisanslı Windows ISO’su kullanıcı tarafından seçilir; Windows ISO’su uygulamayla dağıtılmaz. İndirilen ISO’lar kullanıcı veri klasöründe saklanır.
 
-```bash
-curl -H "X-User-ID: demo-user" http://127.0.0.1:8000/api/v1/memories
-```
-
-Temel uç noktalar:
-
-| İşlev | Uç noktalar |
-|---|---|
-| Sohbet | `POST /api/v1/chat/completions` |
-| Kullanıcı belleği | `GET, POST /api/v1/memories`, `GET, PATCH, DELETE /api/v1/memories/{id}` |
-| Öğrenme geri bildirimi | `GET, POST /api/v1/learning/feedback` |
-| Yetenek önerileri | `GET, POST /api/v1/capability-proposals`, `POST /api/v1/capability-proposals/{id}/decision` |
-| Ürün kataloğu ve sipariş | `GET /api/v1/products`, `GET, POST /api/v1/orders` |
-| Randevular | `GET, POST /api/v1/appointments` |
-| Kod deneyi kuyruğu | `GET, POST /api/v1/code-experiments` |
-| Sağlık kontrolü | `GET /health` |
-
-Bellek, geri bildirim, sipariş, randevu ve öneriler uygulama belleğinde tutulur; sunucu yeniden başlayınca silinir. Sohbet uç noktası harici servise bağlanmayan örnek bir sağlayıcı kullanır. Kod deneyleri yalnızca açıklama metaverisi olarak sıraya eklenir; kullanıcı kodu çalıştırılmaz. Yetenek önerileri ayrıca açıkça onaylanabilir ancak onay üretim sisteminde değişiklik yapmaz.
-
-Bu proje bir demo iskeletidir: gerçek ödeme, hastane/sağlık verisi, harici yapay zekâ sağlayıcısı, kalıcı veritabanı ve kimlik doğrulama içermez. Üretimde kullanıma hazır değildir.
+ISO’lar şu an yalnızca indirilebilir ve saklanabilir; Wox Core bu prototipte henüz işletim sistemi ISO’su başlatamaz.

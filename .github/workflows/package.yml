@@ -1,4 +1,4 @@
-name: Paketleri oluştur
+name: Wox paketlerini oluştur
 
 on:
   workflow_dispatch:
@@ -10,43 +10,58 @@ permissions:
   contents: read
 
 jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install ".[test]"
+      - run: .venv/bin/python -m pytest -q
+
   windows:
+    needs: tests
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install ".[build]"
-      - run: pyinstaller --noconfirm --clean --onefile --name DemoPHO-API --collect-all fastapi --collect-all starlette --collect-all pydantic --collect-all uvicorn run_api.py
+      - run: python -m venv .venv
+      - run: .\.venv\Scripts\python -m pip install ".[build]"
+      - run: .\.venv\Scripts\python -m PyInstaller --noconfirm --clean --onefile --windowed --name Wox --collect-all fastapi --collect-all starlette --collect-all pydantic --collect-all uvicorn run_wox.py
       - uses: actions/upload-artifact@v4
         with:
-          name: DemoPHO-Windows-exe
-          path: dist/DemoPHO-API.exe
+          name: Wox-Windows-exe
+          path: dist/Wox.exe
 
   linux:
+    needs: tests
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install ".[build]"
-      - run: pyinstaller --noconfirm --clean --onefile --name demopho-api --collect-all fastapi --collect-all starlette --collect-all pydantic --collect-all uvicorn run_api.py
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install ".[build]"
+      - run: .venv/bin/python -m PyInstaller --noconfirm --clean --onefile --windowed --name Wox --collect-all fastapi --collect-all starlette --collect-all pydantic --collect-all uvicorn run_wox.py
       - name: AppDir yapısını hazırla
         shell: bash
         run: |
           mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/scalable/apps
-          cp dist/demopho-api AppDir/usr/bin/demopho-api
-          cp packaging/demopho-api.desktop AppDir/demopho-api.desktop
-          cp packaging/demopho-api.desktop AppDir/usr/share/applications/demopho-api.desktop
-          cp packaging/demopho-api.svg AppDir/usr/share/icons/hicolor/scalable/apps/demopho-api.svg
-          cp packaging/demopho-api.svg AppDir/demopho-api.svg
-          cp packaging/demopho-api.svg AppDir/.DirIcon
+          cp dist/Wox AppDir/usr/bin/Wox
+          cp packaging/wox.desktop AppDir/wox.desktop
+          cp packaging/wox.desktop AppDir/usr/share/applications/wox.desktop
+          cp packaging/wox.svg AppDir/usr/share/icons/hicolor/scalable/apps/wox.svg
+          cp packaging/wox.svg AppDir/wox.svg
+          cp packaging/wox.svg AppDir/.DirIcon
           cat > AppDir/AppRun <<'EOF'
           #!/bin/sh
           HERE="$(dirname "$(readlink -f "$0")")"
-          exec "$HERE/usr/bin/demopho-api" "$@"
+          exec "$HERE/usr/bin/Wox" "$@"
           EOF
           chmod +x AppDir/AppRun
       - name: AppImage oluştur
@@ -56,8 +71,36 @@ jobs:
           sudo apt-get install -y libfuse2
           curl -L --fail --retry 3 -o appimagetool.AppImage https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool.AppImage
-          ARCH=x86_64 ./appimagetool.AppImage AppDir dist/DemoPHO-x86_64.AppImage
+          ARCH=x86_64 ./appimagetool.AppImage AppDir dist/Wox-x86_64.AppImage
       - uses: actions/upload-artifact@v4
         with:
-          name: DemoPHO-Linux-AppImage
-          path: dist/DemoPHO-x86_64.AppImage
+          name: Wox-Linux-AppImage
+          path: dist/Wox-x86_64.AppImage
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [windows, linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Wox-Windows-exe
+          path: release-assets
+      - uses: actions/download-artifact@v4
+        with:
+          name: Wox-Linux-AppImage
+          path: release-assets
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Wox ${{ github.ref_name }}
+          body: |
+            Wox özel motor prototipi için Windows ve Linux masaüstü paketleri.
+
+            Bu sürüm x86 16-bit boot sektörünü sınırlı biçimde çalıştırır; tam işletim sistemi ISO önyüklemesi henüz desteklenmez.
+          files: |
+            release-assets/Wox.exe
+            release-assets/Wox-x86_64.AppImage
+          fail_on_unmatched_files: true
+          make_latest: true

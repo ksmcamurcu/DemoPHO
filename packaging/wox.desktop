@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Wox
+Comment=Wox sanal makine motoru prototipi
+Exec=Wox
+Icon=wox
+Terminal=false
+Type=Application
+Categories=System;Emulator;
