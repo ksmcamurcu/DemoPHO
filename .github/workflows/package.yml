@@ -51,8 +51,9 @@ jobs:
       - name: AppDir yapısını hazırla
         shell: bash
         run: |
-          mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/scalable/apps
+          mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/scalable/apps AppDir/usr/share/doc/wox
           cp dist/Wox AppDir/usr/bin/Wox
+          cp packaging/licenses/type2-runtime.txt AppDir/usr/share/doc/wox/type2-runtime-license.txt
           cp packaging/wox.desktop AppDir/wox.desktop
           cp packaging/wox.desktop AppDir/usr/share/applications/wox.desktop
           cp packaging/wox.svg AppDir/usr/share/icons/hicolor/scalable/apps/wox.svg
@@ -71,7 +72,10 @@ jobs:
           sudo apt-get install -y libfuse2
           curl -L --fail --retry 3 -o appimagetool.AppImage https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool.AppImage
-          ARCH=x86_64 ./appimagetool.AppImage AppDir dist/Wox-x86_64.AppImage
+          curl -L --fail --retry 3 -o runtime-x86_64 https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64
+          echo "617aa77314d57c8b8e4fae9c3f0b35af7b30d5529cb69e98f64f92510ed98a46  runtime-x86_64" | sha256sum --check
+          chmod +x runtime-x86_64
+          ARCH=x86_64 ./appimagetool.AppImage --runtime-file runtime-x86_64 AppDir dist/Wox-x86_64.AppImage
       - uses: actions/upload-artifact@v4
         with:
           name: Wox-Linux-AppImage
@@ -82,15 +86,19 @@ jobs:
         run: |
           mkdir -p Portable
           cp dist/Wox Portable/Wox
+          cp dist/Wox-x86_64.AppImage Portable/Wox-x86_64.AppImage
+          cp packaging/licenses/type2-runtime.txt Portable/type2-runtime-license.txt
           chmod +x Portable/Wox
+          chmod +x Portable/Wox-x86_64.AppImage
           cat > Portable/README.txt <<'EOF'
           Wox Linux taşınabilir paketi
 
-          Arşivi dosya yöneticisinde çıkarın ve Wox dosyasına çift tıklayın.
-          Çalıştırma onayı istenirse "Çalıştır"ı seçin.
-          Bu paket AppImage/FUSE kullanmaz.
+          Arşivi dosya yöneticisinde çıkarın. Wox-x86_64.AppImage dosyasına
+          çift tıklayın. Çalıştırma izni sorulursa "Çalıştır"ı seçin.
+          FUSE uyumsuzsa aynı klasördeki Wox dosyasını açın; bu seçenek FUSE
+          gerektirmez.
           EOF
-          tar -czf dist/Wox-Linux-x86_64.tar.gz -C Portable Wox README.txt
+          tar -czf dist/Wox-Linux-x86_64.tar.gz -C Portable Wox Wox-x86_64.AppImage README.txt type2-runtime-license.txt
       - uses: actions/upload-artifact@v4
         with:
           name: Wox-Linux-portable
@@ -122,7 +130,7 @@ jobs:
             Wox özel motor prototipi için Windows ve Linux masaüstü paketleri.
 
             Bu sürüm x86 16-bit boot sektörünü sınırlı biçimde çalıştırır; tam işletim sistemi ISO önyüklemesi henüz desteklenmez.
-            AppImage için FUSE gerekir. FUSE kullanmayan Linux sistemlerinde Wox-Linux-x86_64.tar.gz dosyasını çıkarıp içindeki Wox uygulamasını çalıştırın.
+            AppImage statik FUSE3 runtime kullanır; libfuse2 gerektirmez. İndirme çalıştırma iznini korumazsa Wox-Linux-x86_64.tar.gz arşivini çıkarın. Arşiv hem AppImage'ı hem de FUSE'suz Wox uygulamasını içerir.
           files: |
             release-assets/Wox.exe
             release-assets/Wox-x86_64.AppImage
