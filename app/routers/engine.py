@@ -1,5 +1,10 @@
 from fastapi import APIRouter, HTTPException
 
+from app.engine.kvm import (
+    KvmUnavailableError,
+    kvm_is_available,
+    run_kvm_smoke_test,
+)
 from app.engine.core import (
     MAX_PROGRAM_INSTRUCTIONS,
     MAX_STEPS,
@@ -13,6 +18,7 @@ from app.schemas import (
     BootSectorRequest,
     BootSectorResponse,
     EngineResponse,
+    KvmSmokeResponse,
     WoxProgram,
 )
 
@@ -33,6 +39,8 @@ def engine_info() -> dict[str, object]:
         "max_execution_steps": MAX_STEPS,
         "host_access": False,
         "guest_os_boot": False,
+        "kvm_acceleration_available": kvm_is_available(),
+        "kvm_smoke_test": "/api/v1/engine/kvm-smoke",
         "planned_guest_systems": [
             "Ubuntu x86_64",
             "Parrot x86_64",
@@ -66,4 +74,21 @@ def run_x86_boot_sector(payload: BootSectorRequest) -> BootSectorResponse:
     return BootSectorResponse(
         output=result.output,
         instructions=result.instructions,
+    )
+
+
+@router.post("/kvm-smoke", response_model=KvmSmokeResponse)
+def run_kvm_smoke() -> KvmSmokeResponse:
+    try:
+        result = run_kvm_smoke_test()
+    except KvmUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except EngineError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return KvmSmokeResponse(
+        eax=result.eax,
+        instructions=result.instructions,
+        mode=result.mode,
+        serial_output=result.serial_output,
+        halted=result.halted,
     )

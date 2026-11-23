@@ -6,9 +6,10 @@ from tkinter import filedialog, messagebox, ttk
 import uvicorn
 from pydantic import ValidationError
 
-from app.engine.core import EngineError, run_program
-from app.engine.realmode import SAMPLE_BOOT_SECTOR, run_boot_sector
 from app.demo_keon import DemoKeonWorld
+from app.engine.core import EngineError, run_program
+from app.engine.kvm import kvm_is_available, run_kvm_smoke_test
+from app.engine.realmode import SAMPLE_BOOT_SECTOR, run_boot_sector
 from app.iso_manager import IsoManager
 from app.schemas import WoxProgram
 
@@ -168,6 +169,39 @@ def run_desktop(
         side="right"
     )
     execute()
+
+    kvm_row = ttk.Frame(engine_tab)
+    kvm_row.pack(fill="x", pady=(10, 0))
+    kvm_status = tk.StringVar(
+        value=(
+            "KVM hızlandırması kullanılabilir."
+            if kvm_is_available()
+            else "KVM hızlandırması bu sistemde kullanılamıyor."
+        )
+    )
+    ttk.Label(
+        kvm_row,
+        textvariable=kvm_status,
+        style="Subtitle.TLabel",
+    ).pack(side="left", fill="x", expand=True)
+
+    def execute_kvm_smoke() -> None:
+        try:
+            result = run_kvm_smoke_test()
+        except EngineError as exc:
+            kvm_status.set(f"KVM testi başarısız: {exc}")
+            return
+        kvm_status.set(
+            f"KVM vCPU çalıştı: EAX={result.eax}, "
+            f"COM1 çıktısı={result.serial_output!r}, "
+            f"{result.instructions} adım. ISO önyükleme değildir."
+        )
+
+    ttk.Button(
+        kvm_row,
+        text="KVM vCPU testi",
+        command=execute_kvm_smoke,
+    ).pack(side="right")
 
     boot_tab = ttk.Frame(tabs, padding=18)
     tabs.add(boot_tab, text="x86 önyükleme denemesi")

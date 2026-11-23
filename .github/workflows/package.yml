@@ -129,7 +129,8 @@ jobs:
           body: |
             Wox özel motor prototipi için Windows ve Linux masaüstü paketleri.
 
-            Bu sürüm x86 16-bit boot sektörünü sınırlı biçimde çalıştırır; tam işletim sistemi ISO önyüklemesi henüz desteklenmez.
+            Bu sürüm `/dev/kvm` vCPU smoke testi, SeaBIOS firmware gölgelemesi, E820 belleği ve salt okunur ISO9660/ATAPI CD-ROM aygıtını içerir. Linux'ta depodaki test ISO'su BIOS'tan ATAPI aşamasına ulaşır; gerçek masaüstü konuğu ve kalan aygıt desteği henüz tamamlanmamıştır.
+            Tam işletim sistemi ISO önyüklemesi bu sürümde çalışan bir konuk sistemi olarak sunulmaz.
             Demo Keon sekmesi ve DemoPHO konuşması görsel/çevrimdışı prototiptir; çalışan bir Linux konuk sistemi değildir.
             AppImage statik FUSE3 runtime kullanır; libfuse2 gerektirmez. İndirme çalıştırma iznini korumazsa Wox-Linux-x86_64.tar.gz arşivini çıkarın. Arşiv hem AppImage'ı hem de FUSE'suz Wox uygulamasını içerir.
           files: |

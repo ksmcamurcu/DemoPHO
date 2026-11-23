@@ -60,3 +60,12 @@ class BootSectorResponse(ApiModel):
     output: str
     instructions: int
     halted: bool = True
+
+
+class KvmSmokeResponse(ApiModel):
+    engine: str = "Wox KVM vCPU"
+    eax: int
+    instructions: int
+    mode: str
+    serial_output: str
+    halted: bool

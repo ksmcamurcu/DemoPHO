@@ -54,8 +54,11 @@ Wox açıldığında API yalnızca bu bilgisayarda `127.0.0.1:8000` adresinde ba
 - `GET /api/v1/engine` — motor yetenekleri ve sınırları
 - `POST /api/v1/engine/run` — sınırlı Wox Bytecode programı çalıştırma
 - `POST /api/v1/engine/boot-sector` — imzası doğrulanan 512 baytlık x86 16-bit boot sektörünü sınırlı komut kümesinde çalıştırma
+- `POST /api/v1/engine/kvm-smoke` — Linux KVM üzerinde sabit CPU/COM1 testi
 
 Motorun adım sayısı, program uzunluğu, kayıtçı sayısı ve belleği sabit sınırlarla korunur. Programlar Python kodu veya konak komutları çalıştıramaz. Masaüstü arayüzündeki **x86 önyükleme denemesi** sekmesi örnek boot sektörünü çalıştırır; bu, gerçek işletim sistemi boot desteği değildir.
+
+Linux'ta Wox, QEMU'yu çağırmadan `/dev/kvm` ile doğrudan bir vCPU ve sınırlı konuk belleği oluşturabilir. Motor x86-64 vCPU smoke testini, 256 KiB SeaBIOS firmware denemesini, E820 belleği, i440FX PCI kimliği, BIOS flash gölge alanı ve salt-okunur ISO9660/ATAPI CD-ROM aygıtını içerir. Depodaki 39 MiB'lık test ISO'su SeaBIOS'dan ATAPI aygıtına ulaşır. Gerçek Linux oturumu, masaüstü/girdi ve kalan aygıt desteği henüz tamamlanmadığından bu sürüm çalışan bir Linux konuk sistemi olarak sunulmaz. **KVM vCPU testi** sadece sınırlandırılmış x86-64 ve firmware/ATAPI ilerlemesini doğrular. Windows için henüz bir donanım sanallaştırma arka ucu yoktur.
 
 ## Paketleme
 
