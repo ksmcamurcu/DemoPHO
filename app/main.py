@@ -11,7 +11,7 @@ def create_app(iso_manager: IsoManager | None = None) -> FastAPI:
     application = FastAPI(
         title="Wox VM API",
         description="Wox'ın sınırlı ve yerel sanal makine motoru API'si.",
-        version="0.1.0-prototype",
+        version="0.2.4",
     )
     application.state.iso_manager = iso_manager or IsoManager()
     application.include_router(engine.router, prefix="/api/v1")

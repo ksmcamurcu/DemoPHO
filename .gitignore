@@ -1,4 +1,7 @@
 .venv/
+/.flatpak-builder/
+/flatpak/build-dir/
+/flatpak/repo/
 __pycache__/
 .pytest_cache/
 .ruff_cache/
