@@ -57,7 +57,9 @@ jobs:
           cp packaging/wox.desktop AppDir/wox.desktop
           cp packaging/wox.desktop AppDir/usr/share/applications/wox.desktop
           cp packaging/wox.svg AppDir/usr/share/icons/hicolor/scalable/apps/wox.svg
+          cp packaging/wox.svg AppDir/usr/share/icons/hicolor/scalable/apps/io.github.ksmcamurcu.Wox.svg
           cp packaging/wox.svg AppDir/wox.svg
+          cp packaging/wox.svg AppDir/io.github.ksmcamurcu.Wox.svg
           cp packaging/wox.svg AppDir/.DirIcon
           cat > AppDir/AppRun <<'EOF'
           #!/bin/sh
